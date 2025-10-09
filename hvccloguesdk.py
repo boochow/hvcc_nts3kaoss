@@ -224,17 +224,20 @@ class LogueSDKV2Generator(Generator, ABC):
                 p_attr = p_rcv.attributes
                 match = pattern.fullmatch(p_rcv.display)
                 digits, letter, body = match.groups()
-                print(digits, letter, body)
+                if digits is None:
+                    digits = ''
+                if letter is None:
+                    letter = ''
 
                 # use the digits as parameter index
-                if digits is not None:
+                if digits != '':
                     p_index = int(digits) - 1
                 else:
                     p_index = None
 
                 # use the letters for assigning parameters to input devices
                 p_assign = 'k_genericfx_param_assign_none'
-                if letter is not None:
+                if letter != '':
                     c = letter.lower()
                     if c == 'x':
                         p_assign = 'k_genericfx_param_assign_x'
