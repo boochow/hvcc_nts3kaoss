@@ -78,7 +78,11 @@ __unit_callback int8_t unit_init(const unit_runtime_desc_t * desc)
     {% for i in range(1, 9) %}
       {% set id = "param_id" ~ i %}
       {% if param[id] is defined %}
+        {% if param[id]['type'] == 'int' %}
+    {{param[id]['name']}} = {{param[id]['default'] | int}};
+        {% elif param[id]['type'] == 'float' %}
     {{param[id]['name']}} = {{param[id]['default']}};
+        {% endif %}
     param_dirty[{{i - 1}}] = true;
       {% endif %}
     {% endfor %}
