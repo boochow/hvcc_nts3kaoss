@@ -44,15 +44,12 @@ typedef enum {
 static unit_runtime_desc_t s_desc;
 static int32_t params[k_num_user_unit_param_id];
 
-/*
 {% if noteon_trig is defined %}
 static bool noteon_trig_dirty;
-static uint8_t noteon_velocity;
 {% endif %}
 {% if noteoff_trig is defined %}
 static bool noteoff_trig_dirty;
 {% endif %}
-*/
 
 {% for i in range(1, 9) %}
     {% set id = "param_id" ~ i %}
@@ -154,7 +151,6 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
     {% endif %}
     {% endfor %}
 
-    /*
     {% if noteon_trig is defined %}
     if (noteon_trig_dirty) {
         if (hv_sendBangToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_NOTEON_TRIG)) {
@@ -169,7 +165,6 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
         }
     }
     {% endif %}
-    */
 
 #ifdef RENDER_HALF
     hv_processInlineInterleaved(hvContext, (float *) in, buffer, frames >> 1);
@@ -222,26 +217,19 @@ __unit_callback int32_t unit_get_param_value(uint8_t id) {
     return params[id];
 }
 
-/*
-__unit_callback void unit_note_on(uint8_t note, uint8_t velo)
+static void note_on()
 {
     {% if noteon_trig is defined %} 
     noteon_trig_dirty = true;
-    noteon_velocity = velo;
-    {% else %}
-    (void) note, velo;
     {% endif %}
 }
 
-__unit_callback void unit_note_off(uint8_t note)
+static void note_off()
 {
     {% if noteoff_trig is defined %} 
     noteoff_trig_dirty = true;
-    {% else %}
-    (void) note;
     {% endif %}
 }
-*/
 
 __unit_callback void unit_teardown() {
 }
@@ -267,28 +255,23 @@ __unit_callback void unit_tempo_4ppqn_tick(uint32_t counter) {
 }
 
 __unit_callback void unit_touch_event(uint8_t id, uint8_t phase, uint32_t x, uint32_t y) {
-    // Note: Touch x/y events are already mapped to specific parameters so there is usually there no need to set parameters from here.
-    //       Audio source type effects, for instance, may require these events to trigger enveloppes and such.
-
-    (void)id;
-    (void)phase;
-    (void)x;
-    (void)y;
-
-    // switch (phase) {
-    // case k_unit_touch_phase_began:
-    //   break;
-    // case k_unit_touch_phase_moved:
-    //   break;
-    // case k_unit_touch_phase_ended:
-    //   break;  
-    // case k_unit_touch_phase_stationary:
-    //   break;
-    // case k_unit_touch_phase_cancelled:
-    //   break; 
-    // default:
-    //   break;
-    // }
+    switch (phase) {
+        case k_unit_touch_phase_began:
+            note_on();
+            break;
+        case k_unit_touch_phase_moved:
+            break;
+        case k_unit_touch_phase_ended:
+            note_off();
+            break;
+        case k_unit_touch_phase_stationary:
+            break;
+        case k_unit_touch_phase_cancelled:
+            note_off();
+            break;
+        default:
+            break;
+    }
 }
   
 // dummy implementation for some starndard functions
