@@ -69,7 +69,7 @@ class LogueSDKV2Generator(Generator, ABC):
     def fixed_params_f(cls): return tuple(f"{n}_f" for n in cls.FIXED_PARAMS)
 
     @classproperty
-    def max_param_num(cls): return 10 - len(cls.FIXED_PARAMS)
+    def max_param_num(cls): return 8 - len(cls.FIXED_PARAMS)
 
     @classproperty
     def unit_num_output(cls): return cls.UNIT_NUM_OUTPUT
@@ -162,7 +162,7 @@ class LogueSDKV2Generator(Generator, ABC):
                 'input_queue_size_kb': cls.input_queue_size_kb,
                 'output_queue_size_kb': 0, # minimum
                 'num_output_channels' : num_output_channels,
-                'num_fixed_param': 10 - cls.max_param_num
+                'num_fixed_param': len(cls.fixed_params)
             }
 
             # list of source files
