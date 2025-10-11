@@ -118,7 +118,7 @@ class LogueSDKV2Generator(Generator, ABC):
             verbose: Optional[bool] = False
     ) -> CompilerResp:
         begin_time = time.time()
-        print(f"--> Invoking nts1mkii_{cls.unit_type()}")
+        print(f"--> Invoking {cls.__name__}")
 
         out_dir = os.path.join(out_dir, "logue_unit")
 
@@ -503,7 +503,7 @@ class LogueSDKV2Generator(Generator, ABC):
 
         except Exception as e:
             return CompilerResp(
-                stage=f"nts1mkii_{cls.unit_type()}",
+                stage=f"{cls.__name__}",
                 notifs=CompilerNotif(
                     has_error=True,
                     exception=e,
