@@ -201,7 +201,7 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
     {% if entry.type == "random" %}
     table_{{ key }}_len = hv_table_getLength(hvContext, HV_{{patch_name|upper}}_TABLE_{{key|upper}});
     for (int i = 0; i < table_{{ key }}_len ; i++) {
-        table_{{ key }}[i] = osc_white();
+        table_{{ key }}[i] = fx_white();
     }
     {% endif %}
     {% endfor %}
