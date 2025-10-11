@@ -28,6 +28,10 @@ const __unit_header genericfx_unit_header_t unit_header = {
     .params = {
         // Format:
         // min, max, center, default, type, frac. bits, frac. mode, <reserved>, name
+        {% if pitch is defined or pitch_note is defined %}{% raw %}
+        {0, 1023, 480, 480, k_unit_param_type_midi_note, 0, 0, 0, {"PITCH"}},
+        {% endraw %}
+        {% endif %}
         {% for i in range(1, 9 - num_fixed_param) %}
         {% set id = "param_id" ~ i %}
         {% if param[id] is defined %}
@@ -39,6 +43,10 @@ const __unit_header genericfx_unit_header_t unit_header = {
         {% endfor %}
   },
   .default_mappings = {
+      {% if pitch is defined or pitch_note is defined %}{% raw %}
+      {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 1023, 480},
+      {% endraw %}
+      {% endif %}
       {% for i in range(1, 9 - num_fixed_param) %}
       {% set id = "param_id" ~ i %}
       {% if param[id] is defined %}

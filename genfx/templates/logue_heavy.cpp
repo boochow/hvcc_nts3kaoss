@@ -28,6 +28,9 @@ static bool stop_unit_param;
 static HeavyContextInterface* hvContext;
 
 typedef enum {
+    {% if pitch is defined or pitch_note is defined %}
+    k_user_unit_param_pitch,
+    {% endif %}
     k_user_unit_param_id1,
     k_user_unit_param_id2,
     k_user_unit_param_id3,
@@ -36,14 +39,22 @@ typedef enum {
     k_user_unit_param_id6,
     k_user_unit_param_id7,
     k_user_unit_param_id8,
-    k_user_unit_param_id9,
-    k_user_unit_param_id10,
     k_num_user_unit_param_id
 } user_unit_param_id_t;
 
 static unit_runtime_desc_t s_desc;
 static int32_t params[k_num_user_unit_param_id];
 
+{% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
+struct touch_event_t {
+    bool dirty;
+    uint8_t id;
+    uint8_t phase;
+    float x;
+    float y;
+};
+static struct touch_event_t touch_event;
+{% endif %}
 {% if noteon_trig is defined %}
 static bool noteon_trig_dirty;
 {% endif %}
@@ -72,6 +83,9 @@ static unsigned int table_{{ key }}_len;
 __unit_callback int8_t unit_init(const unit_runtime_desc_t * desc)
 {
     stop_unit_param = true;
+    {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
+    touch_event.dirty = false;
+    {% endif %}
     {% for i in range(1, 9) %}
       {% set id = "param_id" ~ i %}
       {% if param[id] is defined %}
@@ -96,7 +110,7 @@ __unit_callback int8_t unit_init(const unit_runtime_desc_t * desc)
     if (desc->samplerate != 48000)
       return k_unit_err_samplerate;
 
-    if (desc->input_channels != 2 || desc->output_channels != {{num_output_channels}}) 
+    if (desc->input_channels != 2 || desc->output_channels < {{num_output_channels}})
       return k_unit_err_geometry;
 
 #if defined(UNIT_SDRAM_SIZE) && (UNIT_SDRAM_SIZE) > 0
@@ -132,6 +146,47 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
 #endif
 
     stop_unit_param = false;
+    {% if pitch is defined %} 
+    const float pitch = osc_w0f_for_note(params[0]>>3, (params[0] & 0x7)<<5) * k_samplerate;
+    hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH, pitch);
+    {% endif %}
+    {% if pitch_note is defined %}
+    hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH_NOTE, params[0]>>3);
+    {% endif %}
+    {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
+    if (touch_event.dirty) {
+        touch_event.dirty = false;
+        switch(touch_event.phase) {
+        case k_unit_touch_phase_began:
+            {% if touch_began is defined %}
+            hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_BEGAN, 0, "ff", touch_event.x, touch_event.y);
+            {% endif %}
+            break;
+        case k_unit_touch_phase_moved:
+            {% if touch_moved is defined %}
+            hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_MOVED, 0, "ff", touch_event.x, touch_event.y);
+            {% endif %}
+            break;
+        case k_unit_touch_phase_ended:
+            {% if touch_ended is defined %}
+            hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_ENDED, 0, "ff", touch_event.x, touch_event.y);
+            {% endif %}
+            break;
+        case k_unit_touch_phase_stationary:
+            {% if touch_stationary is defined %}
+            hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_STATIONARY, 0, "ff", touch_event.x, touch_event.y);
+            {% endif %}
+            break;
+        case k_unit_touch_phase_cancelled:
+            {% if touch_cancelled is defined %}
+            hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_CANCELLED, 0, "ff", touch_event.x, touch_event.y);
+            {% endif %}
+            break;
+        default:
+            break;
+        }
+    }
+    {% endif %}
     {% for i in range(1, 9 - num_fixed_param) %}
     {% set id = "param_id" ~ i %}
     {% if param[id] is defined %}
@@ -182,6 +237,16 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
 #else
     hv_processInlineInterleaved(hvContext, (float *) in, out, frames);
 #endif
+    {% if num_output_channels == 1 %}
+    if (s_desc.output_channels == 2) {
+        float * p = out + frames;
+        float * y = p + frames;
+        for(; y > p ; ) {
+            *(--y) = *(--p);
+            *(--y) = *p;
+        }
+    }
+    {% endif %}
 }
 
 __unit_callback void unit_set_param_value(uint8_t id, int32_t value)
@@ -255,23 +320,30 @@ __unit_callback void unit_tempo_4ppqn_tick(uint32_t counter) {
 }
 
 __unit_callback void unit_touch_event(uint8_t id, uint8_t phase, uint32_t x, uint32_t y) {
+    {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
+    touch_event.dirty = true;
+    touch_event.id = id;
+    touch_event.phase = phase;
+    touch_event.x = x;
+    touch_event.y = y;
+    {% endif %}
+    {% if noteon_trig is defined or noteoff_trig is defined %}
     switch (phase) {
+        {% if noteon_trig is defined %}
         case k_unit_touch_phase_began:
             note_on();
             break;
-        case k_unit_touch_phase_moved:
-            break;
+        {% endif %}
+        {% if noteoff_trig is defined %}
         case k_unit_touch_phase_ended:
-            note_off();
-            break;
-        case k_unit_touch_phase_stationary:
-            break;
         case k_unit_touch_phase_cancelled:
             note_off();
             break;
+        {% endif %}
         default:
             break;
     }
+    {% endif %}
 }
   
 // dummy implementation for some starndard functions

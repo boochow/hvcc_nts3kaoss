@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     hvContext = hv_{{patch_name}}_new_with_options(48000, {{msg_pool_size_kb}}, {{input_queue_size_kb}}, {{output_queue_size_kb}});
 
     for(int i = 0; i < 15000; i++) { // 45000 = 48000 * 20sec / 64
-        {% if unit_type in ["osc"] %}
+        {% if unit_type in ["osc", "genfx"] %}
         {% if pitch is defined %} 
         hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH, 440.f);
         {% elif pitch_note is defined %}
@@ -74,7 +74,24 @@ int main(int argc, char* argv[]) {
         hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_{{param[id]['name']|upper}}, {{param[id]['default']}});
         {% endif %}
         {% endfor %}
-        {% if unit_type in ["osc"] %}
+        {% if unit_type in ["genfx"] %}
+        {% if touch_began is defined %}
+        hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_BEGAN, 0, "ff", 512.0, 256.0);
+        {% endif %}
+        {% if touch_moved is defined %}
+        hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_MOVED, 0, "ff", 512.0, 256.0);
+        {% endif %}
+        {% if touch_ended is defined %}
+        hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_ENDED, 0, "ff", 512.0, 256.0);
+        {% endif %}
+        {% if touch_stationary is defined %}
+        hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_STATIONARY, 0, "ff", 512.0, 256.0);
+        {% endif %}
+        {% if touch_cancelled is defined %}
+        hv_sendMessageToReceiverV(hvContext, HV_{{patch_name|upper}}_PARAM_IN_TOUCH_CANCELLED, 0, "ff", 512.0, 256.0);
+        {% endif %}
+        {% endif %}
+        {% if unit_type in ["osc", "genfx"] %}
         {% if noteon_trig is defined %}
         if (i % 750 == 0) {
             hv_sendBangToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_NOTEON_TRIG);
