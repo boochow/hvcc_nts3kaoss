@@ -50,7 +50,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
       {% for i in range(1, 9 - num_fixed_param) %}
       {% set id = "param_id" ~ i %}
       {% if param[id] is defined %}
-      {{'{' ~ param[id]['assign']}}, k_genericfx_curve_exp, k_genericfx_curve_unipolar, {{param[id]['disp_min'] | int}}, {{param[id]['disp_max'] | int}}, {{param[id]['disp_default'] | int ~ '}'}}{% if not loop.last %},{{"\n"}}{% endif %}
+      {{'{' ~ param[id]['assign']}}, {{param[id]['curve']}}, {{param[id]['polarity']}}, {{param[id]['disp_min'] | int}}, {{param[id]['disp_max'] | int}}, {{param[id]['disp_default'] | int ~ '}'}}{% if not loop.last %},{{"\n"}}{% endif %}
       {% else %}{% raw %}
       {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0}{% endraw %}{% if not loop.last %},{% endif %}
       {% endif %}

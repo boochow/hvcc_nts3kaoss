@@ -218,33 +218,55 @@ class LogueSDKV2Generator(Generator, ABC):
             
             # parse parameter names
             p_meta = {}
-            pattern = re.compile(r'^(?:_(\d*)([xXyYzZ]?)_)?(.*)$')
+            pattern = re.compile(r'^(?:_(\d*)([xXyYzZ]?)([aAbBcCdDlLrR]?)_)?(.*)$')
             for param in other_params:
                 p_name, p_rcv = param
                 p_attr = p_rcv.attributes
                 match = pattern.fullmatch(p_rcv.display)
-                digits, letter, body = match.groups()
+                digits, device, curve, body = match.groups()
                 if digits is None:
                     digits = ''
-                if letter is None:
-                    letter = ''
+                if device is None:
+                    device = ''
+                if curve is None:
+                    curve = ''
 
-                # use the digits as parameter index
+                # parameter index
                 if digits != '':
                     p_index = int(digits) - 1
                 else:
                     p_index = None
 
-                # use the letters for assigning parameters to input devices
+                # parameter assignment to input devices
                 p_assign = 'k_genericfx_param_assign_none'
-                if letter != '':
-                    c = letter.lower()
+                if device != '':
+                    c = device.lower()
                     if c == 'x':
                         p_assign = 'k_genericfx_param_assign_x'
                     elif c == 'y':
                         p_assign = 'k_genericfx_param_assign_y'
                     elif c == 'z':
                         p_assign = 'k_genericfx_param_assign_depth'
+
+                # parameter mapping curve type
+                p_curve = 'k_genericfx_curve_linear'
+                p_polarity = 'k_genericfx_curve_unipolar'
+                if curve != '':
+                    if curve.isupper():
+                        p_polarity = 'k_genericfx_curve_bipolar'
+                    c = curve.lower()
+                    if c == 'a':
+                        p_curve = 'k_genericfx_curve_exp'
+                    elif c == 'b':
+                        p_curve = 'k_genericfx_curve_linear'
+                    elif c == 'c':
+                        p_curve = 'k_genericfx_curve_log'
+                    elif c == 'd':
+                        p_curve = 'k_genericfx_curve_toggle'
+                    elif c == 'r':
+                        p_curve = 'k_genericfx_curve_minclip'
+                    elif c == 'l':
+                        p_curve = 'k_genericfx_curve_maxclip'
 
                 # parameter type
                 if body.endswith("_f"):
@@ -272,6 +294,8 @@ class LogueSDKV2Generator(Generator, ABC):
                 p_meta[p_name] = {
                     'index' : p_index,
                     'assign' : p_assign,
+                    'curve' : p_curve,
+                    'polarity' : p_polarity,
                     'type' : p_param_type,
                     'disp_name' : p_disp_name,
                     'disp_frac' : p_disp_frac,
