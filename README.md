@@ -1,10 +1,10 @@
 # hvcc External Generator for NTS-3 kaoss pad
 
-This project is an external generator for [hvcc](https://github.com/Wasted-Audio/hvcc). It generates code and other necessary files for the KORG [logue SDK for NTS-3 kaoss pad](https://github.com/korginc/logue-sdk/tree/main/platform/nts-3_kaoss) from a Pure Data patch. Such a patch can be converted to an oscillator unit, a modulation effect unit, a delay effect unit, or a reverb effect unit.
+This project is an external generator for [hvcc](https://github.com/Wasted-Audio/hvcc). It generates code and other necessary files for the KORG [logue SDK for NTS-3 kaoss pad](https://github.com/korginc/logue-sdk/tree/main/platform/nts-3_kaoss) from a Pure Data patch.
 
 ## Installation
 
-Clone this repository, and ensure that both hvcc and the logue SDK are installed. You also need GCC/G++ for your development environment to estimate the required heap memory size (see the Appendix for details).
+Clone this repository, and ensure that both hvcc and the logue SDK are installed. You also need GCC/G++ in your development environment to estimate the required heap memory size (see the Appendix for details).
 
 ## Usage
 
@@ -14,13 +14,13 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
    export PYTHONPATH=$PYTHONPATH:path-to-hvcc_nts3kaoss
    ```
 
-1. To convert your patch, decide the type of unit and run:
+1. To convert your patch, run:
 
    ```bash
    hvcc YOUR_PUREDATA_PATCH.pd -G nts3kaoss_genfx -n PATCH_NAME -o DESTINATION_DIR
    ```
 
-   Check the `DESTINATION_DIR` directory; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
+   Check `DESTINATION_DIR`; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
 
 1. Move the directory named `logue_unit` under the logue SDK platform directory `logue-sdk/platform/nts-3_kaoss`.
 
@@ -30,59 +30,104 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
    make install
    ```
 
-   Alternatively, you can specify your platform directory path via a compile-time option:
+   Alternatively, you can specify your platform directory path by using a compile-time option:
 
    ```bash
    make PLATFORMDIR="~/logue-sdk/platform/nts-3_kaoss" install
    ```
 
+1. Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `noteon_trig`, and `noteoff_trig`.
+
 ## Examples
 
 A separate repository containing sample patches for this project is available at:
 
-[https://github.com/boochow/nts1mkii_hvcc_examples](https://github.com/boochow/nts1mkii_hvcc_examples)
-
-All examples for [logue SDK v1](https://github.com/boochow/loguesdk_hvcc_examples) are also compatible with this project.
+[https://github.com/boochow/nts3kaoss_hvcc_examples](https://github.com/boochow/nts3kaoss_hvcc_examples)
 
 ## Receiving Parameters in Your Pure Data Patch
 
-Any `[r]` object includes the `@hv_param` parameter is recognized as a parameter. Up to eight  parameters can be used.
+#### Fixed Parameters and Built-in Parameters
 
-#### Specifying Parameter Slot Number and Default Mapping
+A set of built-in parameters is provided to receive touch pad events. These events carry x-y coordinates indicating where the touch event occurred.
 
-Optionally, you can specify the parameter slot by adding a prefix `_NU_` (where `N` is a number from 1 to 8 and `U` is one of `x`, `y`,`z`) to the variable name. The remainder of the name is used as the variable name on the display. The `U` value means one of the PAD X, PAD Y, or FX DEPTH. For example, the variable name `_3z_ratio` assigns the parameter "ratio" to slot 3, and this parameter is assigned to the FX DEPTH by default.
+While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` external generator introduces several built-in parameters to help in implementing oscillator-type FX units.
 
-#### Receiving Floating-Point Values
+| name             | type       | format           | description                                |
+| ---------------- | ---------- | ---------------- | ------------------------------------------ |
+| touch_begin      | built-in   | `f f` for x, y * | sent when a new touch was detected.        |
+| touch_moved      | built-in   | `f f` for x, y * | sent while touching on the X-Y pad         |
+| touch_ended      | built-in   | `f f` for x, y * | sent at the end of a touch.                |
+| touch_stationary | built-in   | `f f` for x, y * | used to force-refresh current coordinates. |
+| touch_cancelled  | built-in   | `f f` for x, y * | sent when a touch forcibly ended.          |
+| pitch            | fixed**    | `f`              | a MIDI note frequency in Hz.               |
+| pitch_note       | built-in** | `f`              | a MIDI note number (integer).              |
+| noteon_trig      | built-in** | bang             | sent when a new touch was detected.        |
+| noteoff_trig     | built-in** | bang             | sent at the end of a touch.                |
+
+*Both `x` and `y` are integers ranging from 0 to 1023.
+**These parameters are available only for `-G nts3kaoss_oscfx`.
+
+ Any `[r]` object that includes `@hv_param` but is not listed above is recognized as a parameter. For NTS-3, up to eight parameters can be used. The pitch, pitch_note, noteon_trig, and noteoff_trig are available only for `nts3kaoss_oscfx` generator.
+
+#### Specifying Min, Max and Default Values
 
 By default, all variables receive raw integer values from the logue SDK API. You can specify a minimum value, a maximum value, and a default value like this:
 `[r varname @hv_param 1 5 3]`
 
 When the minimum, maximum, and default values are omitted, they are assumed to be `[0 1 0]`. The default value must be specified when the minimum and the maximum values are specified. 
 
-A variable with the postfix `_f` receives a floating-point value between 0.0 and 1.0 (mapped from integer values between 0 and 1023). You can optionally specify the minimum, maximum, and default values using the syntax:
+The range of integer parameter values is limited to the range between -32768 and 32767. When min and max values exceed these limits, they are clipped to between -32768 to 32767.
+
+#### Receiving Floating-Point Values
+
+A variable with the postfix `_f` receives floating-point values between 0.0 and 1.0. The values are mapped from integer values between 0 and 1023. You can optionally specify the minimum, maximum, and default values using the syntax:
 
 ```
 [r varname @hv_param min max default]
 ```
 
+When min and max values are specified, values are mapped from integer values between 0 and 1023.
+
+#### Parameter Slot, Default Assignment, and Curve Type
+
+Optionally, you can specify the parameter slot, assignment to an input device, and the curve type that maps input coordinates to parameter values by adding a prefix `_NDC_` to the variable name. The remainder of the name is used as the variable name on the display. 
+
+The `N`, a number from 1 to 8, specifies which parameter slot the parameter is assigned to. The `D`, one of `x`, `y`,`z` (case insensitive), means one of the PAD X-axis, PAD Y-axis, or FX DEPTH. The `C` value can be one of: (a) EXP, (b) LOG, (c) LINEAR, (d) TOGGLE, (r) MINCLIP, or (l) MAXCLIP. The `C` values in lower cases mean UNIPOLAR curves and upper cases mean BIPOLAR curves.
+
+For example, the variable name `_3zb_ratio` assigns the parameter "ratio" to slot 3, and the values are mapped linearly from the FX DEPTH values.
+
+Parameters without `N` are assigned to one of the remaining empty parameter slots. The default values of curve type and polarity are LINEAR UNIPOLAR.
+
+### Making Oscillator-type Units
+
+The additional external generator `nts3kaoss_oscfx.py` is also included in this repository to provide an easier way to implement oscillator-type units in Pure Data. The differences between `nts3kaoss_genfx` and `nts3kaoss_oscfx` are:
+
+1. You can use additional fixed built-in parameters `pitch`, `pitch_note`, `noteon_trig`, `noteoff_trig`.
+2. The first parameter is used for the "Pitch" parameter. (7 slots are left for user patches)
+3. The DAC has a single channel `[dac~ 1]`.
+
+The values of the `pitch` parameter are shown as note names on the display, and actual values are note numbers (7 bits) with 3 bits of fractional part. The `pitch` parameter receives floating-point values calculated from the note numbers (7 + 3 bits). The `pitch_note` parameter receives the integer part (7 bits) of the note numbers.
+
+Please note that `-G nts3kaoss_oscfx` is not fully compatible with the generator of OSC units for NTS-1 mkII, as NTS-3 has no LFO. If your patch needs LFO values, you need to implement it in your Pure Data patch.
+
 ## Restrictions
 
 ### DAC and ADC
 
-The logue SDK oscillator units support only a 48,000 Hz sampling rate. The number of channels of `[dac~]` and `[adc~]` must be 2.
+The logue SDK units operate only at a 48 kHz sampling rate. The number of channels of `[dac~]` and `[adc~]` must be 2. The code generated by `nts3kaoss_oscfx.py` copies output data to two channels.
 
 ### Memory Footprint
 
-A unit must fit within the [Max RAM load size](https://github.com/korginc/logue-sdk/tree/main/platform/nts-3_kaoss#supported-modules). While no error will occur in the build process when the binary file might exceed this limit, a warning message below will appear after build process:
+A unit must fit within the [Max RAM load size](https://github.com/korginc/logue-sdk/tree/main/platform/nts-3_kaoss#supported-modules). Even if the binary exceeds this limit, no build error will occur, but a warning message below will appear.
 
-``` Memory footprint: 29796 bytes
+```bash
  Memory footprint: 39796 bytes
  WARNING: Memory footprint exceeds 32768
 ```
 
 ### `msg_toString()` does not work
 
-To reduce the memory footprint, `hv_snprintf()` is replaced by an empty function. The `msg_toString()` function of `hvcc`does not work because it requires `hv_snprintf()`.
+To reduce the memory footprint, `hv_snprintf()` is replaced by an empty function. The `msg_toString()` function of `hvcc` does not work because it requires `hv_snprintf()`.
 
 ## Appendix
 
@@ -94,13 +139,13 @@ To ensure that your unit will fit within the memory space limitation, you must s
 -DUNIT_HEAP_SIZE=3072
 ```
 
-The heap size estimation process is integrated into `config.mk`, or you can manually specify the size like this:
+The heap size estimation process is integrated in `config.mk`, or you can also specify it manually like this:
 
 ```bash
 make HEAP_SIZE=4096
 ```
 
-For automatic estimation, this external generator creates `testmem.c` and `Makefile.testmem`. When GCC and G++ are available, `testmem.c` is built and executed from `config.mk`, and the estimated heap size will be saved in `logue_heap_size.mk`.
+For automatic estimation, this external generator creates `testmem.c` and `Makefile.testmem`. When GCC and G++ are available, `testmem.c` is built and executed by `config.mk`, and the estimated heap size will be saved in `logue_heap_size.mk`.
 
 You can check the `malloc()` calls and the total requested memory for generating the first 960,000 samples by running:
 
@@ -113,9 +158,9 @@ If GCC and G++ are not available in your development environment, the default he
 
 ### Size of the SDRAM allocation
 
-The source code generated by this external generator allocates memory blocks whose size are larger than 256 bytes in the SDRAM area. This feature is enabled for the modfx, delfx, and revfx units to store large data such as a delay line. 
+The source code generated by this external generator allocates memory blocks whose sizes are larger than 256 bytes in the SDRAM area. This feature is enabled for the modfx, delfx, and revfx units to store large data structures such as delay lines.
 
-Since logue SDK requires units to allocate SDRAM blocks in their initialization process, you must specify the total SDRAM size of your unit before the build process. The size for your unit is estimated within the same process as heap memory size estimation, so usually you do not need to estimate it by yourself. 
+Since the logue SDK requires units to allocate SDRAM blocks in their initialization process, you must specify the total SDRAM size of your unit before the build process. The size for your unit is estimated within the same process as heap memory size estimation, so you usually don't need to estimate it manually.
 
 ### Math Functions Approximation
 
@@ -129,7 +174,7 @@ to disable the fast math approximation. Note that disabling this may result in a
 
 ### Internal Sampling Rate
 
-To reduce processing load, enabling the -DRENDER_HALF option allows the oscillator unit to calculate only half of the requested sample frames and interpolate the rest. This results in the sound lacking harmonics above 12 kHz, and many artifacts may appear in higher notes if no band-limiting technique is used. You can edit the config.mk file and enable the commented line:
+Enabling the `-DRENDER_HALF` option lets the oscillator unit calculate only half of the requested sample frames and interpolate the rest. This results in the sound lacking harmonics above 12 kHz, and many artifacts may appear in higher notes if no band-limiting technique is used. You can edit the config.mk file and enable the commented line:
 
 
 ```makefile
@@ -140,11 +185,11 @@ to turn on this feature.
 
 ### Filling a Table with White Noise
 
-Any table whose name ends with `_r` that is exposed using the `@hv_table` notation is always filled with white noise using the logue SDK function `osc_white()`. This feature can be used to replace the `[noise~]` object with the much lighter `[tabread~]` object.
+Any table whose name ends with `_r` and is exposed using the `@hv_table` notation is always filled with white noise using the logue SDK function `fx_white()`. This feature can be used to replace the `[noise~]` object with the much lighter `[tabread~]` object.
 
 However, note that:
 
-1. Filling the buffer with `osc_white()` requires significant processing time, so keep the table size as small as possible (typically 64 samples).
+1. Filling the buffer with `fx_white()` requires significant processing time, so keep the table size as small as possible (typically 64 samples).
 2. To generate white noise, you also need a `[phasor~ freq]`, `[*~ tablesize]`, and `[tabread~]` object. The value of `freq` should be `48000 / tablesize`.
 
 ## Credits
