@@ -222,7 +222,12 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
     {% endif %}
 
 #ifdef RENDER_HALF
+    {% if class_name == 'Nts3_bgfx' %}
+    const unit_runtime_genericfx_context_t *ctxt = static_cast<const unit_runtime_genericfx_context_t *>(s_desc.hooks.runtime_context);
+    hv_processInlineInterleaved(hvContext, (float *) ctxt->get_raw_input(), buffer, frames >> 1);
+    {% else %}
     hv_processInlineInterleaved(hvContext, (float *) in, buffer, frames >> 1);
+    {% endif %}
     for(int i = 0; y!= y_e; i++) {
         if (i & 1) {
             last_buf_l = *p++;
@@ -235,7 +240,12 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
         }
     }
 #else
+    {% if class_name == 'Nts3_bgfx' %}
+    const unit_runtime_genericfx_context_t *ctxt = static_cast<const unit_runtime_genericfx_context_t *>(s_desc.hooks.runtime_context);
+    hv_processInlineInterleaved(hvContext, (float *) ctxt->get_raw_input(), out, frames);
+    {% else %}
     hv_processInlineInterleaved(hvContext, (float *) in, out, frames);
+    {% endif %}
 #endif
     {% if num_output_channels == 1 %}
     if (s_desc.output_channels == 2) {

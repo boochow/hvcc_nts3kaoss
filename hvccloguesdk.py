@@ -153,6 +153,7 @@ class LogueSDKV2Generator(Generator, ABC):
 
             # values for rendering templates
             context = {
+                'class_name': cls.__name__,
                 'unit_type': cls.unit_type(),
                 'max_sdram_size': cls.max_sdram_size,
                 'sdram_alloc_threshold': cls.sdram_alloc_threshold,
