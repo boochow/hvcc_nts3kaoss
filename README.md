@@ -38,6 +38,8 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
 
 1. Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `noteon_trig`, and `noteoff_trig`.
 
+1. If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
+
 ## Examples
 
 A separate repository containing sample patches for this project is available at:
