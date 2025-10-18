@@ -24,7 +24,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
     .unit_id = PROJECT_UNIT_ID,
     .version = 0x00010000U,
     .name = "{{patch_name}}",
-    .num_params = {{num_fixed_param + num_param}},
+    .num_params = {{num_active_fixed_param + num_param}},
     .params = {
         // Format:
         // min, max, center, default, type, frac. bits, frac. mode, <reserved>, name
@@ -32,7 +32,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
         {0, 1023, 480, 480, k_unit_param_type_midi_note, 0, 0, 0, {"PITCH"}},
         {% endraw %}
         {% endif %}
-        {% for i in range(1, 9 - num_fixed_param) %}
+        {% for i in range(1, 9 - num_active_fixed_param) %}
         {% set id = "param_id" ~ i %}
         {% if param[id] is defined %}
         {{'{' ~ param[id]['disp_min'] | int}}, {{param[id]['disp_max'] | int}}, {{param[id]['disp_default'] | int}}, {{param[id]['disp_default'] | int}}, k_unit_param_type_none, {{[param[id]['disp_frac'], 0] | max}}, 1, 0, {{ '{"' ~ param[id]['disp_name'] ~ '"}}' }}{% if not loop.last %},{{"\n"}}{% endif %}
@@ -47,7 +47,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
       {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 1023, 480},
       {% endraw %}
       {% endif %}
-      {% for i in range(1, 9 - num_fixed_param) %}
+      {% for i in range(1, 9 - num_active_fixed_param) %}
       {% set id = "param_id" ~ i %}
       {% if param[id] is defined %}
       {{'{' ~ param[id]['assign']}}, {{param[id]['curve']}}, {{param[id]['polarity']}}, {{param[id]['disp_min'] | int}}, {{param[id]['disp_max'] | int}}, {{param[id]['disp_default'] | int ~ '}'}}{% if not loop.last %},{{"\n"}}{% endif %}

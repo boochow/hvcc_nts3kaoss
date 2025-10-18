@@ -153,7 +153,7 @@ class LogueSDKV2Generator(Generator, ABC):
             context['heavy_files_cpp'] = ' '.join(heavy_files_cpp)
 
             # external parameters excluding unit parameters
-            numbered_params = []
+            active_fixed_params = []
             other_params = []
             for param in externs.parameters.inParam:
                 p_name, p_rcv = param
@@ -162,6 +162,7 @@ class LogueSDKV2Generator(Generator, ABC):
                 if p_name in cls.builtin_params:
                     cls.process_builtin_param(param, context)
                 elif p_name in cls.fixed_params:
+                    active_fixed_params.append(param)
                     context[p_name] = {'name' : p_name}
                     context['p_'+p_name+'hash'] = p_rcv.hash
                     if p_attr['min'] == 0. and p_attr['max'] == 1.0:
@@ -330,6 +331,7 @@ class LogueSDKV2Generator(Generator, ABC):
             else:
                 num_param = 0
             context['num_param'] = num_param
+            context['num_active_fixed_param'] = len(active_fixed_params)
 
             # store tables into a dcitionary (context)
             context['table'] = {}
