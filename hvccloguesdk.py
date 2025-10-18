@@ -71,33 +71,6 @@ class LogueSDKV2Generator(Generator, ABC):
     @classproperty
     def max_param_num(cls): return 8 - len(cls.FIXED_PARAMS)
 
-    @classproperty
-    def unit_num_output(cls): return cls.UNIT_NUM_OUTPUT
-
-    @classproperty
-    def max_sdram_size(cls): return cls.MAX_SDRAM_SIZE
-
-    @classproperty
-    def sdram_alloc_threshold(cls): return cls.SDRAM_ALLOC_THRESHOLD
-
-    @classproperty
-    def max_unit_size(cls): return cls.MAX_UNIT_SIZE
-
-    @classproperty
-    def msg_pool_size_kb(cls): return cls.MSG_POOL_SIZE_KB
-
-    @classproperty
-    def input_queue_size_kb(cls): return cls.INPUT_QUEUE_SIZE_KB
-
-    @classproperty
-    def output_queue_size_kb(cls): return cls.OUTPUT_QUEUE_SIZE_KB
-
-    @classproperty
-    def msg_pool_on_sram(cls): return cls.MSG_POOL_ON_SRAM
-
-    @classproperty
-    def max_digits(cls): return cls.MAX_DIGITS
-
     @classmethod
     def process_builtin_param(cls, param, context: dict):
         p_name, p_rcv = param
@@ -155,13 +128,13 @@ class LogueSDKV2Generator(Generator, ABC):
             context = {
                 'class_name': cls.__name__,
                 'unit_type': cls.unit_type(),
-                'max_sdram_size': cls.max_sdram_size,
-                'sdram_alloc_threshold': cls.sdram_alloc_threshold,
-                'max_unit_size': cls.max_unit_size,
+                'max_sdram_size': cls.MAX_SDRAM_SIZE,
+                'sdram_alloc_threshold': cls.SDRAM_ALLOC_THRESHOLD,
+                'max_unit_size': cls.MAX_UNIT_SIZE,
                 'patch_name': patch_name,
-                'msg_pool_size_kb': cls.msg_pool_size_kb,
-                'input_queue_size_kb': cls.input_queue_size_kb,
-                'output_queue_size_kb': 0, # minimum
+                'msg_pool_size_kb': cls.MSG_POOL_SIZE_KB,
+                'input_queue_size_kb': cls.INPUT_QUEUE_SIZE_KB,
+                'output_queue_size_kb': cls.OUTPUT_QUEUE_SIZE_KB,
                 'num_output_channels' : num_output_channels,
                 'num_fixed_param': len(cls.fixed_params)
             }
@@ -282,7 +255,7 @@ class LogueSDKV2Generator(Generator, ABC):
                 p_min = p_attr['min']
                 if p_param_type == 'float':
                     num_digits = max(ndigits(p_max), ndigits(p_min))
-                    p_disp_frac = cls.max_digits - num_digits
+                    p_disp_frac = cls.MAX_DIGITS - num_digits
                     p_disp_max = p_max * pow(10, p_disp_frac)
                     p_disp_min = p_min * pow(10, p_disp_frac)
                     p_disp_default = p_attr['default'] * pow(10, p_disp_frac)
@@ -434,7 +407,7 @@ class LogueSDKV2Generator(Generator, ABC):
                 f.writelines(dst_lines)
 
             # add definitions to HvMessagePool.c (workaround for delay&reverb)
-            if cls.msg_pool_on_sram:
+            if cls.MSG_POOL_ON_SRAM:
                 hvmessagepool_src_path = os.path.join(c_src_dir, "HvMessagePool.c")
                 hvmessagepool_dst_path = os.path.join(out_dir, "HvMessagePool.c")
                 with open(hvmessagepool_src_path, 'r', encoding='utf-8') as f:
