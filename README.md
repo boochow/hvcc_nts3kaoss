@@ -56,7 +56,7 @@ While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` ext
 
 | name             | type       | format           | description                                |
 | ---------------- | ---------- | ---------------- | ------------------------------------------ |
-| touch_begin      | built-in   | `f f` for x, y * | sent when a new touch was detected.        |
+| touch_began      | built-in   | `f f` for x, y * | sent when a new touch was detected.        |
 | touch_moved      | built-in   | `f f` for x, y * | sent while touching on the X-Y pad.        |
 | touch_ended      | built-in   | `f f` for x, y * | sent at the end of a touch.                |
 | touch_stationary | built-in   | `f f` for x, y * | used to force-refresh current coordinates. |
