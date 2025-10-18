@@ -106,8 +106,8 @@ Parameters without `N` are assigned to one of the remaining empty parameter slot
 The additional external generator `nts3kaoss_oscfx.py` is also included in this repository to provide an easier way to implement oscillator-type units in Pure Data. The differences between `nts3kaoss_genfx` and `nts3kaoss_oscfx` are:
 
 1. You can use additional fixed parameter `pitch`, built-in parameters `pitch_note`, `noteon_trig`, and `noteoff_trig`.
-2. The first parameter slot is used for the "Pitch" parameter. (7 slots are left for your patch)
-3. The output is  single channel `[dac~ 1]`.
+2. The first parameter slot is used when you use "Pitch" parameter in your patch.
+3. Both  single and dual output channels are allowed. (`[dac~ 1]` or`[dac~]`).
 
 The values of the `pitch` parameter are shown as note names on the display, and actual values are note numbers (7 bits) with 3 bits of fractional part. The `pitch` parameter receives floating-point values calculated from the note numbers (7 + 3 bits). The `pitch_note` parameter receives the integer part (7 bits) of the note numbers.
 
