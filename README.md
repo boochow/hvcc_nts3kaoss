@@ -20,9 +20,12 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
    hvcc YOUR_PUREDATA_PATCH.pd -G nts3kaoss_genfx -n PATCH_NAME -o DESTINATION_DIR
    ```
 
-   Check `DESTINATION_DIR`; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
+   Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `noteon_trig`, and `noteoff_trig`.
 
-1. Move the directory named `logue_unit` under the logue SDK platform directory `logue-sdk/platform/nts-3_kaoss`.
+   If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
+
+1. Check `DESTINATION_DIR`; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
+   Move the directory named `logue_unit` under the logue SDK platform directory `logue-sdk/platform/nts-3_kaoss`.
 
 1. In the `logue_unit` directory, run:
 
@@ -35,10 +38,6 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
    ```bash
    make PLATFORMDIR="~/logue-sdk/platform/nts-3_kaoss" install
    ```
-
-1. Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `noteon_trig`, and `noteoff_trig`.
-
-1. If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
 
 ## Examples
 
@@ -95,7 +94,7 @@ When min and max values are specified, values are mapped from integer values bet
 
 Optionally, you can specify the parameter slot, assignment to an input device, and the curve type that maps input coordinates to parameter values by adding a prefix `_NDC_` to the variable name. The remainder of the name is used as the variable name on the display. 
 
-The `N`, a number from 1 to 8, specifies which parameter slot the parameter is assigned to. The `D`, one of `x`, `y`,`z` (case insensitive), means one of the PAD X-axis, PAD Y-axis, or FX DEPTH. The `C` value can be one of: (a) EXP, (b) LOG, (c) LINEAR, (d) TOGGLE, (r) MINCLIP, or (l) MAXCLIP. The `C` values in lower cases mean UNIPOLAR curves and upper cases mean BIPOLAR curves.
+The `N`, a number from `1` to `8`, specifies which parameter slot the parameter is assigned to. The `D`, one of `x`, `y`,`z` (case insensitive), means one of the PAD X-axis, PAD Y-axis, or FX DEPTH. The `C` value can be one of: `a`(EXP), `b`(LOG), `c`(LINEAR), `d`(TOGGLE), `r`(MINCLIP), or `l`(MAXCLIP). The `C` values in lower cases mean UNIPOLAR curves and upper cases mean BIPOLAR curves.
 
 For example, the variable name `_3zb_ratio` assigns the parameter "ratio" to slot 3, and the values are mapped linearly from the FX DEPTH values.
 
