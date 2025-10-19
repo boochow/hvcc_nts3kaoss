@@ -1,4 +1,4 @@
-from hvccloguesdk import LogueSDKV2Generator
+from hvccnts3kaoss import LogueSDKV2Generator
 
 class Nts3_genfx(LogueSDKV2Generator):
     FIXED_PARAMS = ()
