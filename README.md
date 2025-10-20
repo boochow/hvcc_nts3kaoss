@@ -20,9 +20,9 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
    hvcc YOUR_PUREDATA_PATCH.pd -G nts3kaoss_genfx -n PATCH_NAME -o DESTINATION_DIR
    ```
 
-   Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `noteon_trig`, and `noteoff_trig`.
+   Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `slfo`, `noteon_trig`, and `noteoff_trig`.
 
-   If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
+   If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units to use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
 
 1. Check `DESTINATION_DIR`; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
    Move the directory named `logue_unit` under the logue SDK platform directory `logue-sdk/platform/nts-3_kaoss`.
@@ -61,6 +61,7 @@ While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` ext
 | touch_stationary | built-in   | `f f` for x, y * | used to force-refresh current coordinates. |
 | touch_cancelled  | built-in   | `f f` for x, y * | sent when a touch forcibly ended.          |
 | pitch            | fixed**    | `f`              | a MIDI note frequency in Hz.               |
+| slfo             | fixed**    | `f`              | a unipolar LFO.                            |
 | pitch_note       | built-in** | `f`              | a MIDI note number (integer).              |
 | noteon_trig      | built-in** | bang             | sent when a new touch was detected.        |
 | noteoff_trig     | built-in** | bang             | sent at the end of a touch.                |
@@ -69,7 +70,7 @@ While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` ext
 
 **These parameters are available only for `-G nts3kaoss_oscfx`.
 
- Any `[r]` object that includes `@hv_param` but is not listed above is recognized as a parameter. For NTS-3, up to eight parameters can be used. The pitch, pitch_note, noteon_trig, and noteoff_trig are available only for `nts3kaoss_oscfx` generator.
+ Any `[r]` object that includes `@hv_param` but is not listed above is recognized as a parameter. For NTS-3, up to eight parameters can be used. The pitch, pitch_note, slfo, noteon_trig, and noteoff_trig are available only for `nts3kaoss_oscfx` generator.
 
 #### Specifying Min, Max and Default Values
 
@@ -78,7 +79,7 @@ By default, all variables receive raw integer values from the logue SDK API. You
 
 When the minimum, maximum, and default values are omitted, they are assumed to be `[0 1 0]`. The default value must be specified when the minimum and the maximum values are specified. 
 
-The range of integer parameter values is limited to the range between -32768 and 32767. When min and max values exceed these limits, they are clipped to between -32768 to 32767.
+The range of integer parameter values is limited to the range between -32768 and 32767. When min and max values exceed these limits, they are clipped to between -32768 and 32767.
 
 #### Receiving Floating-Point Values
 
@@ -104,13 +105,11 @@ Parameters without `N` are assigned to one of the remaining empty parameter slot
 
 The additional external generator `nts3kaoss_oscfx.py` is also included in this repository to provide an easier way to implement oscillator-type units in Pure Data. The differences between `nts3kaoss_genfx` and `nts3kaoss_oscfx` are:
 
-1. You can use additional fixed parameter `pitch`, built-in parameters `pitch_note`, `noteon_trig`, and `noteoff_trig`.
-2. The first parameter slot is used when you use "Pitch" parameter in your patch.
-3. Both  single and dual output channels are allowed. (`[dac~ 1]` or`[dac~]`).
+1. You can use additional fixed parameter `pitch`, `slfo`, built-in parameters `pitch_note`, `noteon_trig`, and `noteoff_trig`.
+2. The first parameter slot is used for "Pitch" when you use `pitch` parameter in your patch. Another parameter slot is assigned to "LFO Rate" when the `slfo` parameter is used in your patch.
+3. Both single and dual output channels are allowed. (`[dac~ 1]` or`[dac~]`).
 
 The values of the `pitch` parameter are shown as note names on the display, and actual values are note numbers (7 bits) with 3 bits of fractional part. The `pitch` parameter receives floating-point values calculated from the note numbers (7 + 3 bits). The `pitch_note` parameter receives the integer part (7 bits) of the note numbers.
-
-Please note that `-G nts3kaoss_oscfx` is not fully compatible with `-G loguesdk_v1` or `-G nt1mkii_osc`, as NTS-3 has no LFO. If your patch needs LFO values, you need to implement it in your Pure Data patch.
 
 ## Restrictions
 

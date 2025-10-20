@@ -11,6 +11,9 @@
 #include "utils/int_math.h"   // for clipminmaxi32()
 
 #include "osc_api.h"
+{% if slfo is defined %}
+#include "dsp/simplelfo.hpp"
+{% endif %}
 
 #include "Heavy_{{patch_name}}.h"
 
@@ -31,6 +34,9 @@ typedef enum {
     {% if pitch is defined or pitch_note is defined %}
     k_user_unit_param_pitch,
     {% endif %}
+    {% if slfo is defined %}
+    k_user_unit_param_lfo,
+    {% endif %}
     k_user_unit_param_id1,
     k_user_unit_param_id2,
     k_user_unit_param_id3,
@@ -44,6 +50,12 @@ typedef enum {
 
 static unit_runtime_desc_t s_desc;
 static int32_t params[k_num_user_unit_param_id];
+
+{% if slfo is defined %}
+#define LFO_DEFAULTFREQ 0
+static dsp::SimpleLFO s_lfo;
+static const float s_fs_recip = 1.f / 48000.f;                                 
+{% endif %}
 
 {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
 struct touch_event_t {
@@ -83,6 +95,10 @@ static unsigned int table_{{ key }}_len;
 __unit_callback int8_t unit_init(const unit_runtime_desc_t * desc)
 {
     stop_unit_param = true;
+    {% if slfo is defined %}
+    s_lfo.reset();
+    s_lfo.setF0(LFO_DEFAULTFREQ, s_fs_recip);
+    {% endif %}
     {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
     touch_event.dirty = false;
     {% endif %}
@@ -147,11 +163,21 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
 
     stop_unit_param = false;
     {% if pitch is defined %} 
-    const float pitch = osc_w0f_for_note(params[0]>>3, (params[0] & 0x7)<<5) * k_samplerate;
+    const float pitch = osc_w0f_for_note(params[k_user_unit_param_pitch]>>3, (params[k_user_unit_param_pitch] & 0x7)<<5) * k_samplerate;
     hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH, pitch);
     {% endif %}
     {% if pitch_note is defined %}
-    hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH_NOTE, params[0]>>3);
+    hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_PITCH_NOTE, params[k_user_unit_param_pitch]>>3);
+    {% endif %}
+    {% if slfo is defined %}
+    s_lfo.setF0(0.1 * params[k_user_unit_param_lfo], s_fs_recip);
+    if (params[k_user_unit_param_lfo] == 0) {
+        s_lfo.reset();
+    }
+    hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_SLFO, 1.f - s_lfo.triangle_uni());
+    for(int i = 0 ; i < frames ; i++) {
+        s_lfo.cycle();
+    }
     {% endif %}
     {% if touch_began is defined or touch_moved is defined or touch_ended is defined or touch_stationary is defined or touch_cancelled is defined %}
     if (touch_event.dirty) {
