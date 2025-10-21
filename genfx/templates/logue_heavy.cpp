@@ -74,6 +74,15 @@ static bool noteon_trig_dirty;
 static bool noteoff_trig_dirty;
 {% endif %}
 
+{% if metro_4ppqn is defined %}
+static bool metro_4ppqn;
+{% endif %}
+
+{% if sys_tempo is defined %}
+static uint32_t sys_tempo;
+static bool sys_tempo_dirty;
+{% endif %}
+
 {% for i in range(1, 9) %}
     {% set id = "param_id" ~ i %}
     {% if param[id] is defined %}
@@ -246,6 +255,20 @@ __unit_callback void unit_render(const float * in, float * out, uint32_t frames)
         }
     }
     {% endif %}
+    {% if sys_tempo is defined %}
+    if (sys_tempo_dirty) {
+        if (hv_sendFloatToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_SYS_TEMPO, (sys_tempo >> 16) + 1.52587890625e-005f * (sys_tempo & 0xffff))) {
+            sys_tempo_dirty = false;
+        }
+    }
+    {% endif %}
+    {% if metro_4ppqn is defined %}
+    if (metro_4ppqn) {
+        if (hv_sendBangToReceiver(hvContext, HV_{{patch_name|upper}}_PARAM_IN_METRO_4PPQN)) {
+            metro_4ppqn = false;
+        }
+    }
+    {% endif %}
 
 #ifdef RENDER_HALF
     {% if class_name == 'Nts3_bgfx' %}
@@ -350,9 +373,16 @@ __unit_callback const char * unit_get_param_str_value(uint8_t id, int32_t value\
 }
 
 __unit_callback void unit_set_tempo(uint32_t tempo) {
+    {% if sys_tempo is defined %}
+    sys_tempo = tempo;
+    sys_tempo_dirty = true;
+    {% endif %}
 }
 
 __unit_callback void unit_tempo_4ppqn_tick(uint32_t counter) {
+    {% if metro_4ppqn is defined %}
+    metro_4ppqn = true;
+    {% endif %}
 }
 
 __unit_callback void unit_touch_event(uint8_t id, uint8_t phase, uint32_t x, uint32_t y) {

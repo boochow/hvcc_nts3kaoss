@@ -53,18 +53,20 @@ A set of built-in parameters is provided to receive touch pad events. These even
 
 While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` external generator introduces several built-in parameters to help in implementing oscillator-type FX units.
 
-| name             | type       | format           | description                                |
-| ---------------- | ---------- | ---------------- | ------------------------------------------ |
-| touch_began      | built-in   | `f f` for x, y * | sent when a new touch was detected.        |
-| touch_moved      | built-in   | `f f` for x, y * | sent while touching on the X-Y pad.        |
-| touch_ended      | built-in   | `f f` for x, y * | sent at the end of a touch.                |
-| touch_stationary | built-in   | `f f` for x, y * | used to force-refresh current coordinates. |
-| touch_cancelled  | built-in   | `f f` for x, y * | sent when a touch forcibly ended.          |
-| pitch            | fixed**    | `f`              | a MIDI note frequency in Hz.               |
-| slfo             | fixed**    | `f`              | a unipolar LFO.                            |
-| pitch_note       | built-in** | `f`              | a MIDI note number (integer).              |
-| noteon_trig      | built-in** | bang             | sent when a new touch was detected.        |
-| noteoff_trig     | built-in** | bang             | sent at the end of a touch.                |
+| name             | type       | format           | description                                 |
+| ---------------- | ---------- | ---------------- | ------------------------------------------- |
+| touch_began      | built-in   | `f f` for x, y * | sent when a new touch was detected.         |
+| touch_moved      | built-in   | `f f` for x, y * | sent while touching on the X-Y pad.         |
+| touch_ended      | built-in   | `f f` for x, y * | sent at the end of a touch.                 |
+| touch_stationary | built-in   | `f f` for x, y * | used to force-refresh current coordinates.  |
+| touch_cancelled  | built-in   | `f f` for x, y * | sent when a touch forcibly ended.           |
+| sys_tempo        | built-in   | `f`              | sent when a tempo change occurs.            |
+| metro_4ppqn      | built-in   | bang             | sent when a clock event (16th note) occurs. |
+| pitch            | fixed**    | `f`              | a MIDI note frequency in Hz.                |
+| slfo             | fixed**    | `f`              | a unipolar LFO.                             |
+| pitch_note       | built-in** | `f`              | a MIDI note number (integer).               |
+| noteon_trig      | built-in** | bang             | sent when a new touch was detected.         |
+| noteoff_trig     | built-in** | bang             | sent at the end of a touch.                 |
 
 *Both `x` and `y` are integers ranging from 0 to 1023.
 

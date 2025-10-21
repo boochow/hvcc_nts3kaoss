@@ -2,7 +2,7 @@ from hvccnts3kaoss import LogueSDKV2Generator
 
 class Nts3_genfx(LogueSDKV2Generator):
     FIXED_PARAMS = ()
-    BUILTIN_PARAMS = ("touch_began", "touch_moved", "touch_ended", "touch_stationary", "touch_cancelled")
+    BUILTIN_PARAMS = ("touch_began", "touch_moved", "touch_ended", "touch_stationary", "touch_cancelled", "metro_4ppqn", "sys_tempo")
     UNIT_NUM_OUTPUT = 2
     MAX_SDRAM_SIZE = 3145728
     MAX_UNIT_SIZE = 32768
