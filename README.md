@@ -62,11 +62,11 @@ While the logue SDK for NTS-3 has no fixed parameters, the `nts3kaoss_oscfx` ext
 | touch_cancelled  | built-in   | `f f` for x, y * | sent when a touch forcibly ended.           |
 | sys_tempo        | built-in   | `f`              | sent when a tempo change occurs.            |
 | metro_4ppqn      | built-in   | bang             | sent when a clock event (16th note) occurs. |
-| pitch            | fixed**    | `f`              | a MIDI note frequency in Hz.                |
-| slfo             | fixed**    | `f`              | a unipolar LFO.                             |
-| pitch_note       | built-in** | `f`              | a MIDI note number (integer).               |
-| noteon_trig      | built-in** | bang             | sent when a new touch was detected.         |
-| noteoff_trig     | built-in** | bang             | sent at the end of a touch.                 |
+| pitch**          | fixed      | `f`              | a MIDI note frequency in Hz.                |
+| slfo**           | fixed      | `f`              | a unipolar LFO.                             |
+| pitch_note**     | built-in   | `f`              | a MIDI note number (integer).               |
+| noteon_trig**    | built-in   | bang             | sent when a new touch was detected.         |
+| noteoff_trig**   | built-in   | bang             | sent at the end of a touch.                 |
 
 *Both `x` and `y` are integers ranging from 0 to 1023.
 
