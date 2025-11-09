@@ -36,9 +36,6 @@ extern "C" {
 #undef hv_round_f
 #define hv_round_f(a) si_roundf(a)
 
-#undef hv_pow_f
-#define hv_pow_f(a, b) fastpowf(a, b)
-
 #endif
 
 #ifdef __cplusplus
