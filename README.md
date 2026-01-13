@@ -22,7 +22,9 @@ Clone this repository, and ensure that both hvcc and the logue SDK are installed
 
    Optionally, you can use another external generator, `nts3kaoss_oscfx`, to convert oscillator patches that use built-in parameters `pitch`, `pitch_note`, `slfo`, `noteon_trig`, and `noteoff_trig`.
 
-   If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units to use `get_raw_input()` API to obtain a reference to the raw audio input buffer.
+   If your patch needs to keep accessing the input sound even when the touch pad isn't being touched, use `nts3kaoss_bgfx`. This allows the effect units to use `get_raw_input()` API*1 to obtain a reference to the raw audio input buffer.
+
+   *1 To use this API, the version number of your NTS-3's firmware must be 1.4 or greater.
 
 1. Check `DESTINATION_DIR`; it should contain four directories named `c`, `hv`, `ir`, and `logue_unit`.
    Move the directory named `logue_unit` under the logue SDK platform directory `logue-sdk/platform/nts-3_kaoss`.
